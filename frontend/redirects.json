@@ -1,0 +1,12 @@
+[
+  {
+    "source": "/api/<*>",
+    "destination": "/api/:splat",
+    "status": "200"
+  },
+  {
+    "source": "</^[^.]+$|\\.(?!(css|gif|ico|jpg|js|png|txt|svg|woff|woff2|ttf|map|json|webp)$)([^.]+$)/>",
+    "destination": "/index.html",
+    "status": "200"
+  }
+] 

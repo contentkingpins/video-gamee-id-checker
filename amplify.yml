@@ -32,4 +32,19 @@ frontend:
     files:
       - '**/*'
   cache:
-    paths: [] 
+    paths: []
+  customHeaders:
+    - pattern: '/api/**'
+      headers:
+        - key: 'Cache-Control'
+          value: 'no-store'
+        - key: 'X-Custom-Header'
+          value: 'api-request'
+  rewrites:
+    - source: '/api/*'
+      target: '/api/:splat'
+      status: '200'
+      condition: null
+    - source: '/*'
+      target: '/index.html'
+      status: '200' 
