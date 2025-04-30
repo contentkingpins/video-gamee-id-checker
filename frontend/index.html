@@ -14,6 +14,26 @@
             <p class="text-gray-600">Check your gaming profile across different platforms</p>
         </header>
         
+        <!-- Debug Panel (Hidden by default) -->
+        <div id="debug-panel" class="bg-gray-800 text-white p-4 mb-4 rounded-lg hidden">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="font-bold">Debug Information</h3>
+                <button id="close-debug" class="text-sm bg-red-600 px-2 py-1 rounded">Close</button>
+            </div>
+            <div class="text-xs">
+                <p>API URL: <span id="debug-api-url" class="font-mono"></span></p>
+                <p>Last Request: <span id="debug-last-request" class="font-mono"></span></p>
+                <p>Network Status: <span id="debug-network-status" class="font-mono"></span></p>
+            </div>
+            <div class="mt-2">
+                <button id="test-connection" class="bg-blue-600 text-white text-xs px-2 py-1 rounded">Test API Connection</button>
+            </div>
+        </div>
+
+        <div class="flex justify-end mb-2">
+            <button id="show-debug" class="text-xs text-gray-500 hover:text-indigo-600">Developer Tools</button>
+        </div>
+        
         <main>
             <div class="bg-white rounded-lg shadow-md p-6 max-w-md mx-auto">
                 <form id="gamertag-form" class="space-y-4">
@@ -64,5 +84,63 @@
     </div>
     
     <script src="src/app.js"></script>
+    <script>
+        // Debug panel functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const showDebugBtn = document.getElementById('show-debug');
+            const closeDebugBtn = document.getElementById('close-debug');
+            const debugPanel = document.getElementById('debug-panel');
+            const debugApiUrl = document.getElementById('debug-api-url');
+            const debugLastRequest = document.getElementById('debug-last-request');
+            const debugNetworkStatus = document.getElementById('debug-network-status');
+            const testConnectionBtn = document.getElementById('test-connection');
+            
+            // Calculate API URL
+            const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:3000/api'
+                : `${window.location.protocol}//${window.location.hostname}/api`;
+            
+            debugApiUrl.textContent = apiUrl;
+            
+            // Show/hide debug panel
+            showDebugBtn.addEventListener('click', () => {
+                debugPanel.classList.remove('hidden');
+            });
+            
+            closeDebugBtn.addEventListener('click', () => {
+                debugPanel.classList.add('hidden');
+            });
+            
+            // Test API connection
+            testConnectionBtn.addEventListener('click', async () => {
+                try {
+                    debugNetworkStatus.textContent = 'Testing...';
+                    debugNetworkStatus.className = 'font-mono text-yellow-400';
+                    
+                    debugLastRequest.textContent = `${apiUrl}/health`;
+                    
+                    const response = await fetch(`${apiUrl}/health`);
+                    const contentType = response.headers.get('content-type');
+                    
+                    if (contentType && contentType.includes('application/json')) {
+                        const data = await response.json();
+                        debugNetworkStatus.textContent = `✅ Success: ${JSON.stringify(data)}`;
+                        debugNetworkStatus.className = 'font-mono text-green-400';
+                    } else {
+                        debugNetworkStatus.textContent = `❌ Wrong content type: ${contentType}`;
+                        debugNetworkStatus.className = 'font-mono text-red-400';
+                        
+                        // Try to see what content we're getting
+                        const text = await response.text();
+                        console.log('Received content:', text.substring(0, 150) + '...');
+                    }
+                } catch (err) {
+                    debugNetworkStatus.textContent = `❌ Error: ${err.message}`;
+                    debugNetworkStatus.className = 'font-mono text-red-400';
+                    console.error('Connection test error:', err);
+                }
+            });
+        });
+    </script>
 </body>
 </html> 

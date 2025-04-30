@@ -16,17 +16,40 @@ const genericService = require('./services/genericService');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Debug response middleware
+app.use((req, res, next) => {
+  // Log all incoming requests
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log('Headers:', req.headers);
+  
+  // Store the original send method
+  const originalSend = res.send;
+  
+  // Override the send method to log responses
+  res.send = function(...args) {
+    console.log(`[${new Date().toISOString()}] Response for ${req.method} ${req.url}: Status ${res.statusCode}`);
+    return originalSend.apply(res, args);
+  };
+  
+  next();
+});
+
 // Middleware
 app.use(cors({
-  origin: '*', // Allow all origins for testing, in production restrict this
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: '*', // Allow all origins for testing
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
+
+// Handle preflight requests explicitly
+app.options('*', cors());
+
 app.use(express.json());
 
-// Set Content-Type for all JSON responses
-app.use((req, res, next) => {
-  res.setHeader('Content-Type', 'application/json');
+// Set default content type for all API responses
+app.use('/api', (req, res, next) => {
+  res.type('application/json');
   next();
 });
 
@@ -41,15 +64,10 @@ const apiLimiter = rateLimit({
 
 app.use('/api', apiLimiter);
 
-// Serve frontend static files if we're in production
-if (process.env.NODE_ENV === 'production') {
-  const frontendPath = path.join(__dirname, '..', 'frontend');
-  app.use(express.static(frontendPath));
-  
-  app.get('/', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
-  });
-}
+// Explicit health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok', version: '1.0.0', time: new Date().toISOString() });
+});
 
 // Routes
 app.post('/api/profile', async (req, res) => {
@@ -93,7 +111,7 @@ app.post('/api/profile', async (req, res) => {
     }
     
     console.log(`Found profile for ${username} on ${platform}`); // Debug log
-    res.json(profileData);
+    res.status(200).json(profileData);
   } catch (error) {
     console.error('Error fetching profile:', error);
     res.status(500).json({ 
@@ -102,26 +120,40 @@ app.post('/api/profile', async (req, res) => {
   }
 });
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', version: '1.0.0' });
+// Echo endpoint for testing
+app.post('/api/echo', (req, res) => {
+  res.status(200).json({
+    received: req.body,
+    headers: req.headers,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Catch-all route for API 404s
 app.use('/api/*', (req, res) => {
-  res.status(404).json({ message: 'API endpoint not found' });
+  res.status(404).json({ 
+    message: 'API endpoint not found',
+    path: req.originalUrl,
+    method: req.method
+  });
 });
 
-// If production, handle SPA routing
+// Serve frontend static files if configured
 if (process.env.NODE_ENV === 'production') {
+  const frontendPath = path.join(__dirname, '..', 'frontend');
+  app.use(express.static(frontendPath));
+  
+  // SPA fallback
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
+    res.sendFile(path.join(frontendPath, 'index.html'));
   });
 }
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
+  
+  // Ensure we send JSON response even for errors
   res.status(500).json({
     message: 'An unexpected error occurred',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
@@ -132,4 +164,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Node environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`API accessible at: http://localhost:${PORT}/api`);
 }); 
