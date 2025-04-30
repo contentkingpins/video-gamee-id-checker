@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 
 // Import platform services
 const steamService = require('./services/steamService');
@@ -16,8 +17,18 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*', // Allow all origins for testing, in production restrict this
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
+
+// Set Content-Type for all JSON responses
+app.use((req, res, next) => {
+  res.setHeader('Content-Type', 'application/json');
+  next();
+});
 
 // Rate limiting
 const apiLimiter = rateLimit({
@@ -30,9 +41,21 @@ const apiLimiter = rateLimit({
 
 app.use('/api', apiLimiter);
 
+// Serve frontend static files if we're in production
+if (process.env.NODE_ENV === 'production') {
+  const frontendPath = path.join(__dirname, '..', 'frontend');
+  app.use(express.static(frontendPath));
+  
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  });
+}
+
 // Routes
 app.post('/api/profile', async (req, res) => {
   try {
+    console.log('Profile request received:', req.body); // Debug log
+    
     const { username, platform } = req.body;
     
     if (!username || !platform) {
@@ -69,6 +92,7 @@ app.post('/api/profile', async (req, res) => {
       return res.status(404).json({ message: 'Profile not found' });
     }
     
+    console.log(`Found profile for ${username} on ${platform}`); // Debug log
     res.json(profileData);
   } catch (error) {
     console.error('Error fetching profile:', error);
@@ -83,7 +107,29 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', version: '1.0.0' });
 });
 
+// Catch-all route for API 404s
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ message: 'API endpoint not found' });
+});
+
+// If production, handle SPA routing
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
+  });
+}
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({
+    message: 'An unexpected error occurred',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Node environment: ${process.env.NODE_ENV || 'development'}`);
 }); 

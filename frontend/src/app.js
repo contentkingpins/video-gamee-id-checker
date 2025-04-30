@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ? 'http://localhost:3000/api' 
         : `${window.location.protocol}//${window.location.hostname}/api`;
 
+    console.log('Using API URL:', API_URL); // Debug log
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -29,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             // Call API
+            console.log(`Fetching profile for ${username} on ${platform}`); // Debug log
             const response = await fetch(`${API_URL}/profile`, {
                 method: 'POST',
                 headers: {
@@ -36,6 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({ username, platform })
             });
+            
+            // Check content type to avoid parsing HTML as JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error(`Server returned unexpected content type: ${contentType || 'unknown'}`);
+            }
             
             const data = await response.json();
             
@@ -46,7 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // Display results
             displayResults(data);
         } catch (err) {
-            showError(err.message || 'An error occurred while fetching the profile');
+            console.error('API Error:', err); // Debug log
+            if (err.name === 'SyntaxError' && err.message.includes('Unexpected token')) {
+                showError('The server response was not valid JSON. This might be due to a network issue or server misconfiguration.');
+            } else {
+                showError(err.message || 'An error occurred while fetching the profile');
+            }
         } finally {
             loading.classList.add('hidden');
         }
