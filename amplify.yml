@@ -1,0 +1,35 @@
+version: 1
+backend:
+  phases:
+    preBuild:
+      commands:
+        - cd backend
+        - npm install
+    build:
+      commands:
+        - echo "Building backend..."
+        - npm run build
+    postBuild:
+      commands:
+        - echo "Backend build completed"
+  artifacts:
+    baseDirectory: backend
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - 'backend/node_modules/**/*'
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - echo "No frontend build needed for static files"
+    build:
+      commands:
+        - echo "No build step required for the frontend"
+  artifacts:
+    baseDirectory: frontend
+    files:
+      - '**/*'
+  cache:
+    paths: [] 
