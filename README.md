@@ -13,7 +13,7 @@ A full-stack web application that allows users to check gaming profiles across d
 
 - **Frontend**: HTML, CSS (with Tailwind CSS), JavaScript
 - **Backend**: Node.js with Express.js
-- **APIs**: Steam, Roblox, Fortnite/Epic Games
+- **APIs**: Steam, Roblox, Epic Games, Xbox, PlayStation, Activision
 - **Deployment**: AWS Amplify ready
 
 ## Project Structure
@@ -31,10 +31,13 @@ A full-stack web application that allows users to check gaming profiles across d
     ├── server.js       # Express server
     ├── env.example     # Example environment variables
     └── services/       # API integrations
-        ├── steamService.js     # Steam API integration
-        ├── robloxService.js    # Roblox API integration
-        ├── fortniteService.js  # Fortnite/Epic API integration
-        └── genericService.js   # Other platforms (placeholder)
+        ├── steamService.js       # Steam API integration
+        ├── robloxService.js      # Roblox API integration
+        ├── fortniteService.js    # Fortnite/Epic API integration
+        ├── xboxService.js        # Xbox API integration
+        ├── psnService.js         # PlayStation API integration
+        ├── activisionService.js  # Activision/CoD API integration
+        └── genericService.js     # Other platforms (placeholder)
 ```
 
 ## Getting Started
@@ -42,7 +45,12 @@ A full-stack web application that allows users to check gaming profiles across d
 ### Prerequisites
 
 - Node.js (v14 or later)
-- API keys for Steam, Fortnite API (for Epic Games)
+- API keys for various gaming platforms:
+  - Steam API key
+  - Fortnite API key
+  - OpenXBL API key (for Xbox)
+  - NPSSO token (for PlayStation)
+  - Tracker Network API key (for Activision/CoD)
 
 ### Local Installation
 
@@ -57,6 +65,9 @@ A full-stack web application that allows users to check gaming profiles across d
    PORT=3000
    STEAM_API_KEY=your_steam_api_key
    FORTNITE_API_KEY=your_fortnite_api_key
+   OPENXBL_API_KEY=your_openxbl_api_key
+   PSN_NPSSO=your_psn_npsso_token
+   TRACKER_API_KEY=your_tracker_network_api_key
    ```
 4. Start the backend server:
    ```bash
@@ -78,9 +89,12 @@ A full-stack web application that allows users to check gaming profiles across d
 
 1. Connect your GitHub repository to AWS Amplify
 2. Amplify will automatically detect the `amplify.yml` configuration
-3. Add the following environment variables in the Amplify Console:
+3. Add all your API keys as environment variables in the Amplify Console:
    - `STEAM_API_KEY` - Your Steam API key
    - `FORTNITE_API_KEY` - Your Fortnite API key
+   - `OPENXBL_API_KEY` - Your OpenXBL API key
+   - `PSN_NPSSO` - Your PlayStation NPSSO token
+   - `TRACKER_API_KEY` - Your Tracker Network API key
 4. Deploy your application
 
 Amplify will automatically build and deploy both the frontend and backend.
@@ -99,6 +113,19 @@ Amplify will automatically build and deploy both the frontend and backend.
 - Get a Fortnite API key from: https://fortnite-api.com/
 - Documentation: https://fortnite-api.com/documentation
 
+### Xbox API
+- Get an OpenXBL API key from: https://xbl.io/
+- Documentation: https://xbl.io/console
+
+### PlayStation Network API
+- Requires a NPSSO token for authentication
+- Documentation: https://psn-api.achievements.app/
+- npm package: https://www.npmjs.com/package/psn-api
+
+### Activision/Call of Duty API
+- Get a Tracker Network API key from: https://tracker.gg/developers
+- Documentation: https://tracker.gg/developers/docs/titles/cod
+
 ## Adding New Platforms
 
 To add support for a new gaming platform:
@@ -109,4 +136,4 @@ To add support for a new gaming platform:
 
 ## License
 
-MIT # video-gamee-id-checker
+MIT

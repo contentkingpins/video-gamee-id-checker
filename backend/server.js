@@ -7,6 +7,9 @@ const rateLimit = require('express-rate-limit');
 const steamService = require('./services/steamService');
 const robloxService = require('./services/robloxService');
 const fortniteService = require('./services/fortniteService');
+const xboxService = require('./services/xboxService');
+const psnService = require('./services/psnService');
+const activisionService = require('./services/activisionService');
 const genericService = require('./services/genericService');
 
 const app = express();
@@ -50,9 +53,13 @@ app.post('/api/profile', async (req, res) => {
         profileData = await fortniteService.getProfile(username);
         break;
       case 'xbox':
+        profileData = await xboxService.getProfile(username);
+        break;
       case 'psn':
+        profileData = await psnService.getProfile(username);
+        break;
       case 'activision':
-        profileData = await genericService.getProfile(username, platform);
+        profileData = await activisionService.getProfile(username);
         break;
       default:
         return res.status(400).json({ message: 'Unsupported platform' });
@@ -69,6 +76,11 @@ app.post('/api/profile', async (req, res) => {
       message: error.message || 'An error occurred while fetching the profile'
     });
   }
+});
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', version: '1.0.0' });
 });
 
 // Start server
