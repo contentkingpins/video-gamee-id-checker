@@ -41,6 +41,13 @@ customHeaders:
   
 # Important: This tells Amplify this is not just a static site but needs to run server.js
 appRoot: .
+
+# Set up SSR mode
+amplify:
+  rendering:
+    renderingMode: SSR
+    serverSideRendering:
+      entrypoint: frontend/server.js
   
 # Set environment variables here (these are build-time only)
 # For runtime env vars, use the Amplify Console

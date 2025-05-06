@@ -5,7 +5,8 @@
   "main": "frontend/server.js",
   "scripts": {
     "start": "node frontend/server.js",
-    "build": "echo 'No build step required for Express app'"
+    "build": "cd frontend && npm install && echo 'No build step required for Express app'",
+    "postbuild": "cp -r frontend/* ."
   },
   "engines": {
     "node": ">=14.0.0"
