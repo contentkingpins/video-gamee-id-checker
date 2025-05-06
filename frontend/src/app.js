@@ -3,22 +3,29 @@ import { getSteamProfile, getRobloxProfile, getFortniteProfile, getXboxProfile, 
 import CONFIG from './config.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('gamertag-form');
-    const results = document.getElementById('results');
+    const multiForm = document.getElementById('multi-gamertag-form');
+    const allResults = document.getElementById('all-results');
     const loading = document.getElementById('loading');
     const error = document.getElementById('error');
     const errorMessage = document.getElementById('error-message');
 
-    form.addEventListener('submit', async (e) => {
+    // Cache to store previously looked up profiles
+    const profileCache = {};
+
+    multiForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        // Get form data
-        const username = document.getElementById('username').value.trim();
-        const platform = document.getElementById('platform').value;
+        // Get all gamertags from the form
+        const steamUsername = document.getElementById('steam-username').value.trim();
+        const xboxUsername = document.getElementById('xbox-username').value.trim();
+        const psnUsername = document.getElementById('psn-username').value.trim();
+        const epicUsername = document.getElementById('epic-username').value.trim();
+        const robloxUsername = document.getElementById('roblox-username').value.trim();
+        const activisionUsername = document.getElementById('activision-username').value.trim();
         
-        // Validate input
-        if (!username || !platform) {
-            showError('Please enter a username and select a platform');
+        // Validate that at least one username is entered
+        if (!steamUsername && !xboxUsername && !psnUsername && !epicUsername && !robloxUsername && !activisionUsername) {
+            showError('Please enter at least one username');
             return;
         }
         
@@ -26,104 +33,224 @@ document.addEventListener('DOMContentLoaded', () => {
         hideResults();
         loading.classList.remove('hidden');
         
-        try {
-            let profileData;
-            
-            // Call appropriate API based on platform
-            switch (platform.toLowerCase()) {
-                case 'steam':
-                    profileData = await getSteamProfile(username);
-                    break;
-                case 'roblox':
-                    profileData = await getRobloxProfile(username);
-                    break;
-                case 'epic':
-                    profileData = await getFortniteProfile(username);
-                    break;
-                case 'xbox':
-                    profileData = await getXboxProfile(username);
-                    break;
-                case 'activision':
-                    profileData = await getActivisionProfile(username);
-                    break;
-                default:
-                    throw new Error('Unsupported platform');
+        // Create an array to hold all profile fetch promises
+        const profilePromises = [];
+        
+        // Add promises for each platform if username is provided
+        if (steamUsername) {
+            const cacheKey = `steam:${steamUsername}`;
+            if (profileCache[cacheKey]) {
+                profilePromises.push(Promise.resolve(profileCache[cacheKey]));
+            } else {
+                profilePromises.push(
+                    getSteamProfile(steamUsername)
+                        .then(profile => {
+                            profileCache[cacheKey] = profile;
+                            return profile;
+                        })
+                        .catch(err => {
+                            console.error('Steam error:', err);
+                            return { error: true, platform: 'Steam', message: err.message };
+                        })
+                );
             }
+        }
+        
+        if (xboxUsername) {
+            const cacheKey = `xbox:${xboxUsername}`;
+            if (profileCache[cacheKey]) {
+                profilePromises.push(Promise.resolve(profileCache[cacheKey]));
+            } else {
+                profilePromises.push(
+                    getXboxProfile(xboxUsername)
+                        .then(profile => {
+                            profileCache[cacheKey] = profile;
+                            return profile;
+                        })
+                        .catch(err => {
+                            console.error('Xbox error:', err);
+                            return { error: true, platform: 'Xbox', message: err.message };
+                        })
+                );
+            }
+        }
+        
+        if (psnUsername) {
+            // Use Xbox as PSN handler for now as example
+            const cacheKey = `psn:${psnUsername}`;
+            if (profileCache[cacheKey]) {
+                profilePromises.push(Promise.resolve(profileCache[cacheKey]));
+            } else {
+                const profile = {
+                    username: psnUsername,
+                    platform: 'PlayStation',
+                    profileUrl: `https://psnprofiles.com/${encodeURIComponent(psnUsername)}`,
+                    avatar: 'https://image.api.playstation.com/cdn/avatar/default/default-avatar.png',
+                    lastOnline: 'See on PSN Profiles',
+                    stats: {
+                        info: 'View your profile on PSN Profiles'
+                    }
+                };
+                profileCache[cacheKey] = profile;
+                profilePromises.push(Promise.resolve(profile));
+            }
+        }
+        
+        if (epicUsername) {
+            const cacheKey = `epic:${epicUsername}`;
+            if (profileCache[cacheKey]) {
+                profilePromises.push(Promise.resolve(profileCache[cacheKey]));
+            } else {
+                profilePromises.push(
+                    getFortniteProfile(epicUsername)
+                        .then(profile => {
+                            profileCache[cacheKey] = profile;
+                            return profile;
+                        })
+                        .catch(err => {
+                            console.error('Epic error:', err);
+                            return { error: true, platform: 'Epic Games', message: err.message };
+                        })
+                );
+            }
+        }
+        
+        if (robloxUsername) {
+            const cacheKey = `roblox:${robloxUsername}`;
+            if (profileCache[cacheKey]) {
+                profilePromises.push(Promise.resolve(profileCache[cacheKey]));
+            } else {
+                profilePromises.push(
+                    getRobloxProfile(robloxUsername)
+                        .then(profile => {
+                            profileCache[cacheKey] = profile;
+                            return profile;
+                        })
+                        .catch(err => {
+                            console.error('Roblox error:', err);
+                            return { error: true, platform: 'Roblox', message: err.message };
+                        })
+                );
+            }
+        }
+        
+        if (activisionUsername) {
+            const cacheKey = `activision:${activisionUsername}`;
+            if (profileCache[cacheKey]) {
+                profilePromises.push(Promise.resolve(profileCache[cacheKey]));
+            } else {
+                profilePromises.push(
+                    getActivisionProfile(activisionUsername)
+                        .then(profile => {
+                            profileCache[cacheKey] = profile;
+                            return profile;
+                        })
+                        .catch(err => {
+                            console.error('Activision error:', err);
+                            return { error: true, platform: 'Activision', message: err.message };
+                        })
+                );
+            }
+        }
+        
+        try {
+            // Wait for all promises to resolve
+            const profiles = await Promise.all(profilePromises);
             
-            // Display results
-            displayResults(profileData);
+            // Display all profiles
+            displayAllProfiles(profiles);
         } catch (err) {
-            console.error('API Error:', err);
-            showError(err.message || 'An error occurred while fetching the profile');
+            console.error('Profile fetch error:', err);
+            showError('An error occurred while fetching profiles');
         } finally {
             loading.classList.add('hidden');
         }
     });
     
-    function displayResults(data) {
+    function displayAllProfiles(profiles) {
         // Hide error if it was shown
         error.classList.add('hidden');
         
-        // Create profile card
-        results.innerHTML = `
-            <div class="bg-white rounded-lg shadow-md overflow-hidden profile-card">
-                <div class="p-4 bg-indigo-50 border-b flex items-center">
-                    <img src="${data.avatar || 'https://via.placeholder.com/80'}" 
-                         alt="Profile Avatar" 
-                         class="w-20 h-20 rounded-full avatar">
-                    <div class="ml-4">
-                        <h2 class="text-xl font-bold text-gray-800">${data.username}</h2>
-                        <div class="flex items-center mt-1">
-                            <span class="bg-indigo-100 text-indigo-800 px-2 py-1 rounded text-sm font-medium">
-                                ${data.platform}
-                            </span>
+        // Clear existing results
+        allResults.innerHTML = '';
+        
+        // Display each profile
+        profiles.forEach(profile => {
+            if (profile.error) {
+                // Display error card for this platform
+                allResults.innerHTML += `
+                    <div class="bg-red-50 rounded-lg shadow-md overflow-hidden profile-card">
+                        <div class="p-4 bg-red-100 border-b">
+                            <h2 class="text-xl font-bold text-red-800">${profile.platform} Error</h2>
+                        </div>
+                        <div class="p-4">
+                            <p class="text-red-700">${profile.message || 'Could not find profile'}</p>
                         </div>
                     </div>
-                </div>
-                
-                <div class="p-4">
-                    ${data.lastOnline ? `
-                    <div class="mb-3">
-                        <h3 class="text-sm font-medium text-gray-500">Last Online</h3>
-                        <p class="text-gray-700">${data.lastOnline}</p>
-                    </div>` : ''}
-                    
-                    ${data.stats && Object.keys(data.stats).length > 0 ? `
-                    <div>
-                        <h3 class="text-sm font-medium text-gray-500 mb-2">Stats</h3>
-                        <div class="flex flex-wrap">
-                            ${Object.entries(data.stats).map(([key, value]) => 
-                                `<div class="stat-badge">
-                                    <span class="font-semibold mr-1">${key}:</span> ${value}
-                                </div>`
-                            ).join('')}
+                `;
+            } else {
+                // Create profile card
+                allResults.innerHTML += `
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden profile-card">
+                        <div class="p-4 bg-indigo-50 border-b flex items-center">
+                            <img src="${profile.avatar || 'https://via.placeholder.com/80'}" 
+                                 alt="Profile Avatar" 
+                                 class="w-16 h-16 rounded-full avatar">
+                            <div class="ml-4">
+                                <h2 class="text-lg font-bold text-gray-800">${profile.username}</h2>
+                                <div class="flex items-center mt-1">
+                                    <span class="bg-indigo-100 text-indigo-800 px-2 py-1 rounded text-xs font-medium">
+                                        ${profile.platform}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                    </div>` : ''}
-                    
-                    ${data.profileUrl ? `
-                    <div class="mt-4">
-                        <a href="${data.profileUrl}" target="_blank" 
-                           class="bg-indigo-600 text-white px-4 py-2 rounded-md inline-block hover:bg-indigo-700 transition-colors">
-                           View Full Profile
-                        </a>
-                    </div>` : ''}
-                </div>
-            </div>
-        `;
+                        
+                        <div class="p-4">
+                            ${profile.lastOnline ? `
+                            <div class="mb-3">
+                                <h3 class="text-sm font-medium text-gray-500">Last Online</h3>
+                                <p class="text-gray-700">${profile.lastOnline}</p>
+                            </div>` : ''}
+                            
+                            ${profile.stats && Object.keys(profile.stats).length > 0 ? `
+                            <div>
+                                <h3 class="text-sm font-medium text-gray-500 mb-2">Stats</h3>
+                                <div class="flex flex-wrap">
+                                    ${Object.entries(profile.stats).map(([key, value]) => 
+                                        `<div class="stat-badge">
+                                            <span class="font-semibold mr-1">${key}:</span> ${value}
+                                        </div>`
+                                    ).join('')}
+                                </div>
+                            </div>` : ''}
+                            
+                            ${profile.profileUrl ? `
+                            <div class="mt-4">
+                                <a href="${profile.profileUrl}" target="_blank" 
+                                   class="bg-indigo-600 text-white px-4 py-2 rounded-md inline-block hover:bg-indigo-700 transition-colors text-sm">
+                                   View Full Profile
+                                </a>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+        });
         
         // Show results
-        results.classList.remove('hidden');
+        allResults.classList.remove('hidden');
     }
     
     function showError(message) {
         errorMessage.textContent = message;
         error.classList.remove('hidden');
-        results.classList.add('hidden');
+        allResults.classList.add('hidden');
         loading.classList.add('hidden');
     }
     
     function hideResults() {
-        results.classList.add('hidden');
+        allResults.classList.add('hidden');
         error.classList.add('hidden');
     }
     
