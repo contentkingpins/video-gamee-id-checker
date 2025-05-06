@@ -4,14 +4,15 @@ backend:
     preBuild:
       commands:
         - echo "Installing dependencies for backend"
-        - cd frontend
+        - ls -la  # Debug: list directory contents
+        - pwd     # Debug: print working directory
         - npm install
     build:
       commands:
         - echo "Building backend"
         - echo "No specific build step needed for Express app"
   artifacts:
-    baseDirectory: frontend
+    baseDirectory: .
     files:
       - '**/*'
 frontend:
@@ -19,6 +20,8 @@ frontend:
     preBuild:
       commands:
         - echo "Frontend preBuild phase"
+        - cd frontend
+        - npm install
     build:
       commands:
         - echo "No separate frontend build needed"
@@ -37,8 +40,7 @@ customHeaders:
         value: 'max-age=0, no-cache, no-store, must-revalidate'
   
 # Important: This tells Amplify this is not just a static site but needs to run server.js
-appRoot: frontend
-buildPath: frontend
+appRoot: .
   
 # Set environment variables here (these are build-time only)
 # For runtime env vars, use the Amplify Console

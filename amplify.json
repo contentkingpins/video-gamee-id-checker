@@ -5,9 +5,9 @@
   "javascript": {
     "framework": "none",
     "config": {
-      "SourceDir": "frontend",
-      "DistributionDir": "frontend",
-      "BuildCommand": "npm install && echo 'No separate build step required for this Express app'",
+      "SourceDir": ".",
+      "DistributionDir": ".",
+      "BuildCommand": "cd frontend && npm install && echo 'No separate build step required for this Express app'",
       "StartCommand": "node frontend/server.js"
     }
   },

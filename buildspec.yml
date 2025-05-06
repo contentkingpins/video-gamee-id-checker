@@ -4,6 +4,8 @@ applications:
       phases:
         preBuild:
           commands:
+            - pwd  # Debug: print working directory
+            - ls -la  # Debug: show directory contents
             - cd frontend
             - npm install
         build:
@@ -13,7 +15,7 @@ applications:
         baseDirectory: frontend
         files:
           - '**/*'
-    appRoot: frontend
+    appRoot: .
     env:
       variables:
         NODE_ENV: production
