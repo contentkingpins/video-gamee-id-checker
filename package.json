@@ -1,12 +1,11 @@
 {
-  "name": "video-gamee-id-checker-root",
+  "name": "gamertag-checker",
   "version": "1.0.0",
-  "description": "Root package for Gamertag Checker with Express backend",
+  "description": "Gamertag Checker with Express backend for AWS Elastic Beanstalk",
   "main": "frontend/server.js",
   "scripts": {
     "start": "node frontend/server.js",
-    "build": "cd frontend && npm install && echo 'No build step required for Express app'",
-    "postbuild": "cp -r frontend/* ."
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
     "node": ">=14.0.0"
