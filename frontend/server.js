@@ -19,6 +19,18 @@ if (process.env.AWS_AMPLIFY_APP_ID) {
   if (!allowedOrigins.includes(amplifyDomain)) {
     allowedOrigins.push(amplifyDomain);
   }
+  
+  // Also add the root domain without branch prefix for custom domains
+  const rootAmplifyDomain = `https://${process.env.AWS_AMPLIFY_APP_ID}.amplifyapp.com`;
+  if (!allowedOrigins.includes(rootAmplifyDomain)) {
+    allowedOrigins.push(rootAmplifyDomain);
+  }
+  
+  // Also add the specific Amplify domain from the screenshot
+  const mainAmplifyDomain = 'https://main.d3kx1hvmqce1c4.amplifyapp.com';
+  if (!allowedOrigins.includes(mainAmplifyDomain)) {
+    allowedOrigins.push(mainAmplifyDomain);
+  }
 }
 
 // Set up CORS properly

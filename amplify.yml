@@ -26,19 +26,23 @@ frontend:
     baseDirectory: frontend
     files:
       - '**/*'
-  customHeaders:
-    - pattern: '**/*'
-      headers:
-        - key: 'Cache-Control'
-          value: 'max-age=0, no-cache, no-store, must-revalidate'
   cache:
     paths: []
 
-# Monorepo settings
-appRoot: frontend  
+# Properly configure Amplify to handle Node.js Express application
+customHeaders:
+  - pattern: '**/*'
+    headers:
+      - key: 'Cache-Control'
+        value: 'max-age=0, no-cache, no-store, must-revalidate'
+  
+# Important: This tells Amplify this is not just a static site but needs to run server.js
+appRoot: frontend
+buildPath: frontend
   
 # Set environment variables here (these are build-time only)
 # For runtime env vars, use the Amplify Console
 env:
   variables:
-    NODE_ENV: production 
+    NODE_ENV: production
+    PORT: 8080 
