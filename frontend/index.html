@@ -35,76 +35,44 @@
         </div>
         
         <main>
-            <div class="bg-white rounded-lg shadow-md p-6 max-w-2xl mx-auto">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Enter Your Gamertags</h2>
-                <p class="text-gray-600 mb-6">Fill in your usernames for any platform you want to check. You can check multiple platforms at once.</p>
+            <div class="bg-white rounded-lg shadow-md p-6 max-w-lg mx-auto">
+                <h2 class="text-xl font-bold text-gray-800 mb-2">Enter Your Gamertag</h2>
+                <p class="text-gray-600 mb-6">We'll check your profile across all major gaming platforms at once.</p>
                 
-                <form id="multi-gamertag-form" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Steam -->
-                        <div class="platform-input">
-                            <div class="flex items-center mb-2">
-                                <img src="https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/steamworks_logo.png" alt="Steam" class="h-6 w-6 mr-2">
-                                <label for="steam-username" class="text-sm font-medium text-gray-700">Steam Username</label>
-                            </div>
-                            <input type="text" id="steam-username" name="steam-username" 
+                <form id="single-gamertag-form" class="space-y-6">
+                    <div class="relative">
+                        <div class="flex">
+                            <input type="text" id="gamertag" name="gamertag" required 
+                                   placeholder="Enter your gamertag/username"
                                    class="block w-full rounded-md border-gray-300 shadow-sm 
-                                          focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                                          focus:border-indigo-500 focus:ring-indigo-500 p-4 border text-lg">
                         </div>
                         
-                        <!-- Xbox -->
-                        <div class="platform-input">
-                            <div class="flex items-center mb-2">
-                                <img src="https://compass-ssl.xbox.com/assets/cd/11/cd11b588-0890-4981-89b4-9950d8f2d093.svg?n=Xbox-2019_Jubilee-Monocolor_Gamertag_144x80_01.svg" alt="Xbox" class="h-6 w-6 mr-2">
-                                <label for="xbox-username" class="text-sm font-medium text-gray-700">Xbox Gamertag</label>
-                            </div>
-                            <input type="text" id="xbox-username" name="xbox-username" 
-                                   class="block w-full rounded-md border-gray-300 shadow-sm 
-                                          focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
-                        </div>
-                        
-                        <!-- Epic -->
-                        <div class="platform-input">
-                            <div class="flex items-center mb-2">
-                                <img src="https://cdn2.unrealengine.com/eg-shield-logo-white-f8185c103d8d.svg?resize=1&w=32" alt="Epic" class="h-6 w-6 mr-2">
-                                <label for="epic-username" class="text-sm font-medium text-gray-700">Epic Games / Fortnite</label>
-                            </div>
-                            <input type="text" id="epic-username" name="epic-username" 
-                                   class="block w-full rounded-md border-gray-300 shadow-sm 
-                                          focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
-                        </div>
-                        
-                        <!-- Roblox -->
-                        <div class="platform-input">
-                            <div class="flex items-center mb-2">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Roblox_player_icon_black.svg/1200px-Roblox_player_icon_black.svg.png" alt="Roblox" class="h-6 w-6 mr-2">
-                                <label for="roblox-username" class="text-sm font-medium text-gray-700">Roblox Username</label>
-                            </div>
-                            <input type="text" id="roblox-username" name="roblox-username" 
-                                   class="block w-full rounded-md border-gray-300 shadow-sm 
-                                          focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
-                        </div>
-                        
-                        <!-- Activision -->
-                        <div class="platform-input">
-                            <div class="flex items-center mb-2">
-                                <img src="https://www.callofduty.com/content/dam/atvi/callofduty/cod-touchui/activision/activision-logo.svg" alt="Activision" class="h-6 w-6 mr-2">
-                                <label for="activision-username" class="text-sm font-medium text-gray-700">Activision ID (COD)</label>
-                            </div>
-                            <input type="text" id="activision-username" name="activision-username" 
-                                   class="block w-full rounded-md border-gray-300 shadow-sm 
-                                          focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
-                        </div>
-                        
-                        <!-- PlayStation -->
-                        <div class="platform-input">
-                            <div class="flex items-center mb-2">
-                                <img src="https://image.api.playstation.com/cdn/avatar/default/default-avatar.png" alt="PSN" class="h-6 w-6 mr-2">
-                                <label for="psn-username" class="text-sm font-medium text-gray-700">PlayStation Network</label>
-                            </div>
-                            <input type="text" id="psn-username" name="psn-username" 
-                                   class="block w-full rounded-md border-gray-300 shadow-sm 
-                                          focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                <span class="h-2 w-2 rounded-full bg-indigo-400 mr-1"></span>
+                                Steam
+                            </span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <span class="h-2 w-2 rounded-full bg-green-400 mr-1"></span>
+                                Xbox
+                            </span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                <span class="h-2 w-2 rounded-full bg-blue-400 mr-1"></span>
+                                PlayStation
+                            </span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                <span class="h-2 w-2 rounded-full bg-amber-400 mr-1"></span>
+                                Epic Games
+                            </span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                <span class="h-2 w-2 rounded-full bg-gray-400 mr-1"></span>
+                                Roblox
+                            </span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                <span class="h-2 w-2 rounded-full bg-orange-400 mr-1"></span>
+                                Activision
+                            </span>
                         </div>
                     </div>
                     
@@ -112,7 +80,7 @@
                             class="w-full bg-indigo-600 py-3 px-4 border border-transparent rounded-md 
                                    shadow-sm text-lg font-medium text-white hover:bg-indigo-700 
                                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        Check All Profiles
+                        Check All Platforms
                     </button>
                 </form>
             </div>

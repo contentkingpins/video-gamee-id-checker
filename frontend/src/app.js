@@ -1,9 +1,9 @@
 // Import API functions from api.js
-import { getSteamProfile, getRobloxProfile, getFortniteProfile, getXboxProfile, getActivisionProfile } from './api.js';
+import { getSteamProfile, getRobloxProfile, getFortniteProfile, getXboxProfile, getPSNProfile, getActivisionProfile } from './api.js';
 import CONFIG from './config.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    const multiForm = document.getElementById('multi-gamertag-form');
+    const singleForm = document.getElementById('single-gamertag-form');
     const allResults = document.getElementById('all-results');
     const loading = document.getElementById('loading');
     const error = document.getElementById('error');
@@ -12,20 +12,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Cache to store previously looked up profiles
     const profileCache = {};
 
-    multiForm.addEventListener('submit', async (e) => {
+    singleForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        // Get all gamertags from the form
-        const steamUsername = document.getElementById('steam-username').value.trim();
-        const xboxUsername = document.getElementById('xbox-username').value.trim();
-        const psnUsername = document.getElementById('psn-username').value.trim();
-        const epicUsername = document.getElementById('epic-username').value.trim();
-        const robloxUsername = document.getElementById('roblox-username').value.trim();
-        const activisionUsername = document.getElementById('activision-username').value.trim();
+        // Get the gamertag from the form
+        const gamertag = document.getElementById('gamertag').value.trim();
         
-        // Validate that at least one username is entered
-        if (!steamUsername && !xboxUsername && !psnUsername && !epicUsername && !robloxUsername && !activisionUsername) {
-            showError('Please enter at least one username');
+        // Validate that a gamertag is entered
+        if (!gamertag) {
+            showError('Please enter a gamertag');
             return;
         }
         
@@ -36,129 +31,60 @@ document.addEventListener('DOMContentLoaded', () => {
         // Create an array to hold all profile fetch promises
         const profilePromises = [];
         
-        // Add promises for each platform if username is provided
-        if (steamUsername) {
-            const cacheKey = `steam:${steamUsername}`;
+        // Check the gamertag on all platforms
+        const platforms = [
+            { name: 'Steam', handler: getSteamProfile },
+            { name: 'Roblox', handler: getRobloxProfile },
+            { name: 'Epic Games', handler: getFortniteProfile },
+            { name: 'Xbox', handler: getXboxProfile },
+            { name: 'PlayStation', handler: getPSNProfile },
+            { name: 'Activision', handler: getActivisionProfile }
+        ];
+        
+        // Create a promise for each platform
+        platforms.forEach(platform => {
+            const cacheKey = `${platform.name.toLowerCase()}:${gamertag}`;
+            
             if (profileCache[cacheKey]) {
                 profilePromises.push(Promise.resolve(profileCache[cacheKey]));
             } else {
                 profilePromises.push(
-                    getSteamProfile(steamUsername)
+                    platform.handler(gamertag)
                         .then(profile => {
                             profileCache[cacheKey] = profile;
                             return profile;
                         })
                         .catch(err => {
-                            console.error('Steam error:', err);
-                            return { error: true, platform: 'Steam', message: err.message };
+                            console.error(`${platform.name} error:`, err);
+                            return { 
+                                error: true, 
+                                platform: platform.name, 
+                                message: err.message,
+                                gamertag: gamertag 
+                            };
                         })
                 );
             }
-        }
-        
-        if (xboxUsername) {
-            const cacheKey = `xbox:${xboxUsername}`;
-            if (profileCache[cacheKey]) {
-                profilePromises.push(Promise.resolve(profileCache[cacheKey]));
-            } else {
-                profilePromises.push(
-                    getXboxProfile(xboxUsername)
-                        .then(profile => {
-                            profileCache[cacheKey] = profile;
-                            return profile;
-                        })
-                        .catch(err => {
-                            console.error('Xbox error:', err);
-                            return { error: true, platform: 'Xbox', message: err.message };
-                        })
-                );
-            }
-        }
-        
-        if (psnUsername) {
-            // Use Xbox as PSN handler for now as example
-            const cacheKey = `psn:${psnUsername}`;
-            if (profileCache[cacheKey]) {
-                profilePromises.push(Promise.resolve(profileCache[cacheKey]));
-            } else {
-                const profile = {
-                    username: psnUsername,
-                    platform: 'PlayStation',
-                    profileUrl: `https://psnprofiles.com/${encodeURIComponent(psnUsername)}`,
-                    avatar: 'https://image.api.playstation.com/cdn/avatar/default/default-avatar.png',
-                    lastOnline: 'See on PSN Profiles',
-                    stats: {
-                        info: 'View your profile on PSN Profiles'
-                    }
-                };
-                profileCache[cacheKey] = profile;
-                profilePromises.push(Promise.resolve(profile));
-            }
-        }
-        
-        if (epicUsername) {
-            const cacheKey = `epic:${epicUsername}`;
-            if (profileCache[cacheKey]) {
-                profilePromises.push(Promise.resolve(profileCache[cacheKey]));
-            } else {
-                profilePromises.push(
-                    getFortniteProfile(epicUsername)
-                        .then(profile => {
-                            profileCache[cacheKey] = profile;
-                            return profile;
-                        })
-                        .catch(err => {
-                            console.error('Epic error:', err);
-                            return { error: true, platform: 'Epic Games', message: err.message };
-                        })
-                );
-            }
-        }
-        
-        if (robloxUsername) {
-            const cacheKey = `roblox:${robloxUsername}`;
-            if (profileCache[cacheKey]) {
-                profilePromises.push(Promise.resolve(profileCache[cacheKey]));
-            } else {
-                profilePromises.push(
-                    getRobloxProfile(robloxUsername)
-                        .then(profile => {
-                            profileCache[cacheKey] = profile;
-                            return profile;
-                        })
-                        .catch(err => {
-                            console.error('Roblox error:', err);
-                            return { error: true, platform: 'Roblox', message: err.message };
-                        })
-                );
-            }
-        }
-        
-        if (activisionUsername) {
-            const cacheKey = `activision:${activisionUsername}`;
-            if (profileCache[cacheKey]) {
-                profilePromises.push(Promise.resolve(profileCache[cacheKey]));
-            } else {
-                profilePromises.push(
-                    getActivisionProfile(activisionUsername)
-                        .then(profile => {
-                            profileCache[cacheKey] = profile;
-                            return profile;
-                        })
-                        .catch(err => {
-                            console.error('Activision error:', err);
-                            return { error: true, platform: 'Activision', message: err.message };
-                        })
-                );
-            }
-        }
+        });
         
         try {
             // Wait for all promises to resolve
             const profiles = await Promise.all(profilePromises);
             
-            // Display all profiles
-            displayAllProfiles(profiles);
+            // Filter out profiles with errors unless all have errors
+            const successfulProfiles = profiles.filter(profile => !profile.error);
+            
+            if (successfulProfiles.length > 0) {
+                // Display successful profiles first, then errors
+                displayAllProfiles([
+                    ...successfulProfiles,
+                    ...profiles.filter(profile => profile.error)
+                ]);
+            } else {
+                // If no successful profiles, show all errors
+                displayAllProfiles(profiles);
+                showError(`Could not find '${gamertag}' on any gaming platform. Please check the spelling and try again.`);
+            }
         } catch (err) {
             console.error('Profile fetch error:', err);
             showError('An error occurred while fetching profiles');
@@ -181,7 +107,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 allResults.innerHTML += `
                     <div class="bg-red-50 rounded-lg shadow-md overflow-hidden profile-card">
                         <div class="p-4 bg-red-100 border-b">
-                            <h2 class="text-xl font-bold text-red-800">${profile.platform} Error</h2>
+                            <h2 class="text-xl font-bold text-red-800">${profile.platform}</h2>
+                            <p class="text-sm text-red-600">Gamertag: ${profile.gamertag || ''}</p>
                         </div>
                         <div class="p-4">
                             <p class="text-red-700">${profile.message || 'Could not find profile'}</p>
@@ -189,17 +116,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
             } else {
+                // Create profile card with custom styling based on platform
+                const platformColors = {
+                    'Steam': 'indigo',
+                    'Xbox': 'green',
+                    'PlayStation': 'blue',
+                    'Epic Games': 'amber',
+                    'Roblox': 'gray',
+                    'Activision': 'orange'
+                };
+                
+                const color = platformColors[profile.platform] || 'indigo';
+                
                 // Create profile card
                 allResults.innerHTML += `
                     <div class="bg-white rounded-lg shadow-md overflow-hidden profile-card">
-                        <div class="p-4 bg-indigo-50 border-b flex items-center">
+                        <div class="p-4 bg-${color}-50 border-b flex items-center">
                             <img src="${profile.avatar || 'https://via.placeholder.com/80'}" 
                                  alt="Profile Avatar" 
                                  class="w-16 h-16 rounded-full avatar">
                             <div class="ml-4">
                                 <h2 class="text-lg font-bold text-gray-800">${profile.username}</h2>
                                 <div class="flex items-center mt-1">
-                                    <span class="bg-indigo-100 text-indigo-800 px-2 py-1 rounded text-xs font-medium">
+                                    <span class="bg-${color}-100 text-${color}-800 px-2.5 py-1 rounded-full text-xs font-medium">
                                         ${profile.platform}
                                     </span>
                                 </div>
@@ -207,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         
                         <div class="p-4">
-                            ${profile.lastOnline ? `
+                            ${profile.lastOnline && profile.lastOnline !== 'Info unavailable from API' ? `
                             <div class="mb-3">
                                 <h3 class="text-sm font-medium text-gray-500">Last Online</h3>
                                 <p class="text-gray-700">${profile.lastOnline}</p>
@@ -217,18 +156,25 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div>
                                 <h3 class="text-sm font-medium text-gray-500 mb-2">Stats</h3>
                                 <div class="flex flex-wrap">
-                                    ${Object.entries(profile.stats).map(([key, value]) => 
-                                        `<div class="stat-badge">
-                                            <span class="font-semibold mr-1">${key}:</span> ${value}
-                                        </div>`
-                                    ).join('')}
+                                    ${Object.entries(profile.stats)
+                                        .filter(([key]) => key !== 'note')
+                                        .map(([key, value]) => 
+                                            `<div class="stat-badge">
+                                                <span class="font-semibold mr-1">${key}:</span> ${value}
+                                            </div>`
+                                        ).join('')}
                                 </div>
+                            </div>` : ''}
+                            
+                            ${profile.additionalInfo ? `
+                            <div class="additional-info mt-3">
+                                ${profile.additionalInfo}
                             </div>` : ''}
                             
                             ${profile.profileUrl ? `
                             <div class="mt-4">
                                 <a href="${profile.profileUrl}" target="_blank" 
-                                   class="bg-indigo-600 text-white px-4 py-2 rounded-md inline-block hover:bg-indigo-700 transition-colors text-sm">
+                                   class="bg-${color}-600 text-white px-4 py-2 rounded-md inline-block hover:bg-${color}-700 transition-colors text-sm">
                                    View Full Profile
                                 </a>
                             </div>` : ''}
@@ -245,67 +191,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function showError(message) {
         errorMessage.textContent = message;
         error.classList.remove('hidden');
-        allResults.classList.add('hidden');
-        loading.classList.add('hidden');
     }
     
     function hideResults() {
         allResults.classList.add('hidden');
         error.classList.add('hidden');
-    }
-    
-    // Utility functions
-    function formatLastOnline(timestamp) {
-        if (!timestamp) return 'Unknown';
-        
-        const date = new Date(timestamp * 1000);
-        return date.toLocaleString();
-    }
-    
-    function formatAccountAge(timestamp) {
-        if (!timestamp) return 'Unknown';
-        
-        const creationDate = new Date(timestamp * 1000);
-        const now = new Date();
-        const yearDiff = now.getFullYear() - creationDate.getFullYear();
-        
-        if (yearDiff < 1) {
-            const monthDiff = now.getMonth() - creationDate.getMonth();
-            return `${monthDiff} months`;
-        }
-        
-        return `${yearDiff} years`;
-    }
-    
-    function formatSteamStatus(state) {
-        const states = {
-            0: 'Offline',
-            1: 'Online',
-            2: 'Busy',
-            3: 'Away',
-            4: 'Snooze',
-            5: 'Looking to Trade',
-            6: 'Looking to Play'
-        };
-        
-        return states[state] || 'Unknown';
-    }
-    
-    function truncate(str, maxLength) {
-        if (!str) return '';
-        if (str.length <= maxLength) return str;
-        return str.substring(0, maxLength) + '...';
-    }
-    
-    function formatValue(value, suffix = '') {
-        if (value === undefined || value === null) {
-            return 'N/A';
-        }
-        
-        if (typeof value === 'number') {
-            return value.toLocaleString() + suffix;
-        }
-        
-        return value + suffix;
     }
 }); 
