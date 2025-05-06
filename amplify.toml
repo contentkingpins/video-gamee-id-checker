@@ -1,0 +1,4 @@
+[hosting]
+  [hosting.amplifyhosting]
+    renderingMode = "SERVER_SIDE_RENDERING"
+    type = "EXPRESS" 
