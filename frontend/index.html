@@ -83,8 +83,11 @@
         </main>
     </div>
     
-    <script src="src/app.js"></script>
-    <script>
+    <script src="src/app.js" type="module"></script>
+    <script type="module">
+        // Import CONFIG for debug panel
+        import CONFIG from './src/config.js';
+        
         // Debug panel functionality
         document.addEventListener('DOMContentLoaded', () => {
             const showDebugBtn = document.getElementById('show-debug');
@@ -95,10 +98,8 @@
             const debugNetworkStatus = document.getElementById('debug-network-status');
             const testConnectionBtn = document.getElementById('test-connection');
             
-            // Calculate API URL
-            const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                ? 'http://localhost:3000/api'
-                : `${window.location.protocol}//${window.location.hostname}/api`;
+            // Calculate API URL - no longer needed since we're using direct API calls
+            const apiUrl = "Direct API Calls (No Backend)";
             
             debugApiUrl.textContent = apiUrl;
             
@@ -111,20 +112,22 @@
                 debugPanel.classList.add('hidden');
             });
             
-            // Test API connection
+            // Test API connection - test Steam API instead
             testConnectionBtn.addEventListener('click', async () => {
                 try {
                     debugNetworkStatus.textContent = 'Testing...';
                     debugNetworkStatus.className = 'font-mono text-yellow-400';
                     
-                    debugLastRequest.textContent = `${apiUrl}/health`;
+                    // Test CORS proxy with Steam API
+                    const testUrl = `${CONFIG.CORS_PROXY}https://api.steampowered.com/ISteamWebAPIUtil/GetSupportedAPIList/v1/?key=DEMO`;
+                    debugLastRequest.textContent = testUrl;
                     
-                    const response = await fetch(`${apiUrl}/health`);
+                    const response = await fetch(testUrl);
                     const contentType = response.headers.get('content-type');
                     
                     if (contentType && contentType.includes('application/json')) {
                         const data = await response.json();
-                        debugNetworkStatus.textContent = `✅ Success: ${JSON.stringify(data)}`;
+                        debugNetworkStatus.textContent = `✅ Success: CORS proxy working`;
                         debugNetworkStatus.className = 'font-mono text-green-400';
                     } else {
                         debugNetworkStatus.textContent = `❌ Wrong content type: ${contentType}`;

@@ -1,6 +1,6 @@
 # Gamertag Checker
 
-A frontend web application that allows users to check gaming profiles across different platforms (Steam, Xbox, PlayStation, Epic Games, Roblox, Activision).
+A **100% frontend** web application that allows users to check gaming profiles across different platforms (Steam, Xbox, PlayStation, Epic Games, Roblox, Activision) using direct API calls without any backend server.
 
 ## Features
 
@@ -15,33 +15,42 @@ A frontend web application that allows users to check gaming profiles across dif
 - **APIs**: Direct integration with:
   - Steam API
   - Roblox API
-  - Fortnite API
+  - Fortnite/Epic API
+  - Xbox API (via OpenXBL)
+  - Activision/Call of Duty API (via Tracker.gg)
 
 ## Project Structure
 
 ```
 .
-└── frontend/           # Frontend assets
-    ├── index.html      # Main HTML file
-    └── src/            # Source files
-        ├── app.js      # JavaScript logic with direct API calls
-        └── styles.css  # Custom styles
+└── frontend/                # Frontend assets
+    ├── index.html           # Main HTML file
+    └── src/                 # Source files
+        ├── api.js           # API handler functions for each platform
+        ├── config.js        # Configuration including API keys
+        ├── app.js           # Main application logic
+        └── styles.css       # Custom styles
 ```
 
 ## Getting Started
 
 ### Prerequisites
 
-- API keys for Steam and Fortnite APIs
+- API keys for the gaming platforms you want to use:
+  - Steam API key
+  - Fortnite API key
+  - OpenXBL API key (for Xbox)
+  - Tracker.gg API key (for Call of Duty)
 - CORS proxy for APIs that don't support cross-origin requests
 
 ### Installation
 
 1. Clone the repository
-2. Replace API keys in `frontend/src/app.js`:
+2. Replace API keys in `frontend/src/config.js`:
    ```javascript
-   const STEAM_API_KEY = 'YOUR_STEAM_API_KEY';
-   const FORTNITE_API_KEY = 'YOUR_FORTNITE_API_KEY';
+   STEAM_API_KEY: 'YOUR_STEAM_API_KEY',
+   FORTNITE_API_KEY: 'YOUR_FORTNITE_API_KEY',
+   // Other API keys...
    ```
 3. Open `frontend/index.html` in your browser
 
@@ -83,6 +92,16 @@ This implementation uses direct API calls from the browser, which may encounter 
 - Endpoint: `https://fortnite-api.com/v2/stats/br/v2?name={username}`
 - Requires API key in Authorization header
 - Documentation: https://fortnite-api.com/documentation
+
+### Xbox API (via OpenXBL)
+- Endpoint: `https://xbl.io/api/v2/account/profile/gamertag/{gamertag}`
+- Requires API key in X-Authorization header
+- Documentation: https://xbl.io/docs
+
+### Activision/Call of Duty API (via Tracker.gg)
+- Endpoint: `https://public-api.tracker.gg/v2/warzone/standard/profile/{platform}/{username}`
+- Requires API key in TRN-Api-Key header
+- Documentation: https://tracker.gg/developers/docs/titles/warzone
 
 ## License
 

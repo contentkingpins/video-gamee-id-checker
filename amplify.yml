@@ -1,50 +1,26 @@
 version: 1
-backend:
-  phases:
-    preBuild:
-      commands:
-        - cd backend
-        - npm install
-    build:
-      commands:
-        - echo "Building backend..."
-        - npm run build
-    postBuild:
-      commands:
-        - echo "Backend build completed"
-  artifacts:
-    baseDirectory: backend
-    files:
-      - '**/*'
-  cache:
-    paths:
-      - 'backend/node_modules/**/*'
 frontend:
   phases:
     preBuild:
       commands:
-        - echo "No frontend build needed for static files"
+        - echo "Preparing frontend deployment"
     build:
       commands:
-        - echo "No build step required for the frontend"
+        - echo "No build commands needed for static frontend"
   artifacts:
     baseDirectory: frontend
     files:
       - '**/*'
-  cache:
-    paths: []
   customHeaders:
-    - pattern: '/api/**'
+    - pattern: '**/*'
       headers:
         - key: 'Cache-Control'
-          value: 'no-store'
-        - key: 'X-Custom-Header'
-          value: 'api-request'
-  rewrites:
-    - source: '/api/*'
-      target: '/api/:splat'
-      status: '200'
-      condition: null
-    - source: '/*'
-      target: '/index.html'
-      status: '200' 
+          value: 'max-age=0, no-cache, no-store, must-revalidate'
+        - key: 'Access-Control-Allow-Origin'
+          value: '*'
+  cache:
+    paths: []
+  redirects:
+    - source: '/<*>'
+      target: /index.html
+      status: 200 
