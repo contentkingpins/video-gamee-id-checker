@@ -3,20 +3,24 @@ import { getSteamProfile, getRobloxProfile, getFortniteProfile, getXboxProfile, 
 import CONFIG from './config.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM Content Loaded - App initialized');
     const singleForm = document.getElementById('single-gamertag-form');
     const allResults = document.getElementById('all-results');
     const loading = document.getElementById('loading');
     const error = document.getElementById('error');
     const errorMessage = document.getElementById('error-message');
+    const gamertagInput = document.getElementById('gamertag');
 
     // Cache to store previously looked up profiles
     const profileCache = {};
 
     singleForm.addEventListener('submit', async (e) => {
+        console.log('Form submitted');
         e.preventDefault();
         
         // Get the gamertag from the form
-        const gamertag = document.getElementById('gamertag').value.trim();
+        const gamertag = gamertagInput.value.trim();
+        console.log('Gamertag entered:', gamertag);
         
         // Validate that a gamertag is entered
         if (!gamertag) {
@@ -27,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show loading indicator
         hideResults();
         loading.classList.remove('hidden');
+        error.classList.add('hidden');
         
         // Create an array to hold all profile fetch promises
         const profilePromises = [];
@@ -41,16 +46,21 @@ document.addEventListener('DOMContentLoaded', () => {
             { name: 'Activision', handler: getActivisionProfile }
         ];
         
+        console.log('Starting API calls for all platforms');
+        
         // Create a promise for each platform
         platforms.forEach(platform => {
             const cacheKey = `${platform.name.toLowerCase()}:${gamertag}`;
+            console.log(`Checking ${platform.name} for gamertag: ${gamertag}`);
             
             if (profileCache[cacheKey]) {
+                console.log(`Using cached result for ${platform.name}`);
                 profilePromises.push(Promise.resolve(profileCache[cacheKey]));
             } else {
                 profilePromises.push(
                     platform.handler(gamertag)
                         .then(profile => {
+                            console.log(`${platform.name} profile fetched successfully:`, profile);
                             profileCache[cacheKey] = profile;
                             return profile;
                         })
@@ -59,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             return { 
                                 error: true, 
                                 platform: platform.name, 
-                                message: err.message,
+                                message: err.message || 'Error fetching profile',
                                 gamertag: gamertag 
                             };
                         })
@@ -68,32 +78,51 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         try {
+            console.log('Waiting for all profile promises to resolve');
             // Wait for all promises to resolve
-            const profiles = await Promise.all(profilePromises);
+            const profiles = await Promise.allSettled(profilePromises);
+            console.log('All profiles fetched:', profiles);
+            
+            // Convert any rejected promises to error objects
+            const finalProfiles = profiles.map((result, index) => {
+                if (result.status === 'fulfilled') {
+                    return result.value;
+                } else {
+                    console.error(`Promise rejected for ${platforms[index].name}:`, result.reason);
+                    return {
+                        error: true,
+                        platform: platforms[index].name,
+                        message: result.reason?.message || 'Failed to fetch profile',
+                        gamertag: gamertag
+                    };
+                }
+            });
             
             // Filter out profiles with errors unless all have errors
-            const successfulProfiles = profiles.filter(profile => !profile.error);
+            const successfulProfiles = finalProfiles.filter(profile => !profile.error);
+            console.log(`Found ${successfulProfiles.length} successful profiles`);
             
             if (successfulProfiles.length > 0) {
                 // Display successful profiles first, then errors
                 displayAllProfiles([
                     ...successfulProfiles,
-                    ...profiles.filter(profile => profile.error)
+                    ...finalProfiles.filter(profile => profile.error)
                 ]);
             } else {
                 // If no successful profiles, show all errors
-                displayAllProfiles(profiles);
+                displayAllProfiles(finalProfiles);
                 showError(`Could not find '${gamertag}' on any gaming platform. Please check the spelling and try again.`);
             }
         } catch (err) {
             console.error('Profile fetch error:', err);
-            showError('An error occurred while fetching profiles');
+            showError('An error occurred while fetching profiles. Please check the console for details.');
         } finally {
             loading.classList.add('hidden');
         }
     });
     
     function displayAllProfiles(profiles) {
+        console.log('Displaying profiles:', profiles);
         // Hide error if it was shown
         error.classList.add('hidden');
         
@@ -104,6 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         profiles.forEach(profile => {
             if (profile.error) {
                 // Display error card for this platform
+                console.log(`Showing error card for ${profile.platform}`);
                 allResults.innerHTML += `
                     <div class="bg-red-50 rounded-lg shadow-md overflow-hidden profile-card">
                         <div class="p-4 bg-red-100 border-b">
@@ -117,6 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             } else {
                 // Create profile card with custom styling based on platform
+                console.log(`Showing profile card for ${profile.platform}`);
                 const platformColors = {
                     'Steam': 'indigo',
                     'Xbox': 'green',
@@ -185,16 +216,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         // Show results
+        console.log('Showing results div');
         allResults.classList.remove('hidden');
     }
     
     function showError(message) {
+        console.log('Showing error:', message);
         errorMessage.textContent = message;
         error.classList.remove('hidden');
     }
     
     function hideResults() {
+        console.log('Hiding results');
         allResults.classList.add('hidden');
-        error.classList.add('hidden');
     }
 }); 

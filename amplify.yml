@@ -1,12 +1,27 @@
 version: 1
+backend:
+  phases:
+    preBuild:
+      commands:
+        - echo "Installing dependencies for backend"
+        - cd frontend
+        - npm install
+    build:
+      commands:
+        - echo "Building backend"
+        - echo "No specific build step needed for Express app"
+  artifacts:
+    baseDirectory: frontend
+    files:
+      - '**/*'
 frontend:
   phases:
     preBuild:
       commands:
-        - echo "Preparing frontend deployment"
+        - echo "Frontend preBuild phase"
     build:
       commands:
-        - echo "No build commands needed for static frontend"
+        - echo "No separate frontend build needed"
   artifacts:
     baseDirectory: frontend
     files:
@@ -16,11 +31,14 @@ frontend:
       headers:
         - key: 'Cache-Control'
           value: 'max-age=0, no-cache, no-store, must-revalidate'
-        - key: 'Access-Control-Allow-Origin'
-          value: '*'
   cache:
     paths: []
-  redirects:
-    - source: '/<*>'
-      target: /index.html
-      status: 200 
+
+# Monorepo settings
+appRoot: frontend  
+  
+# Set environment variables here (these are build-time only)
+# For runtime env vars, use the Amplify Console
+env:
+  variables:
+    NODE_ENV: production 

@@ -5,8 +5,19 @@
  */
 
 const CONFIG = {
-  // Public endpoints and services
-  CORS_PROXY: 'https://corsproxy.io/?',
+  // CORS Proxy configuration with fallbacks
+  // In production, consider deploying your own CORS proxy or using environment variables
+  CORS_PROXIES: [
+    'https://corsproxy.org/?',
+    'https://corsproxy.io/?',
+    'https://api.allorigins.win/raw?url='
+  ],
+  
+  // Get the active CORS proxy with fallback support
+  get CORS_PROXY() {
+    // In production, you could check a cookie or localStorage to see which proxy worked last
+    return this.CORS_PROXIES[0];
+  },
   
   // Public profile URL patterns - for linking to official profiles
   PROFILE_URLS: {
@@ -47,6 +58,15 @@ const CONFIG = {
   CACHE: {
     ENABLED: true,
     EXPIRE_TIME: 3600000 // 1 hour in milliseconds
+  },
+
+  // CORS production settings - use when deploying to a real domain
+  PRODUCTION: {
+    // For production, you'd set this to your specific domain(s)
+    ALLOWED_ORIGINS: ['https://yourdomain.com', 'https://www.yourdomain.com'],
+    
+    // Whether to use direct API calls or CORS proxy based on environment
+    USE_CORS_PROXY: true, // Change to false if you've implemented proper CORS on your backend/server
   }
 };
 

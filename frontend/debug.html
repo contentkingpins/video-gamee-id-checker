@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Debug Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        pre {
+            background-color: #f5f5f5;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+    <div class="container mx-auto">
+        <h1 class="text-2xl font-bold mb-4">API Debug Tool</h1>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-semibold mb-3">Test CORS Proxy</h2>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">CORS Proxy URL:</label>
+                <input type="text" id="corsProxy" value="https://corsproxy.org/?" 
+                    class="w-full p-2 border rounded">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Test URL:</label>
+                <input type="text" id="testUrl" value="https://steamcommunity.com/id/gabelogannewell?xml=1" 
+                    class="w-full p-2 border rounded">
+            </div>
+            <button id="testCorsBtn" class="bg-blue-600 text-white px-4 py-2 rounded">
+                Test CORS Proxy
+            </button>
+            <div id="corsResult" class="mt-4"></div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-xl font-semibold mb-3">Test Steam API</h2>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Steam Username/ID:</label>
+                <input type="text" id="steamId" value="gabelogannewell" 
+                    class="w-full p-2 border rounded">
+            </div>
+            <button id="testSteamBtn" class="bg-indigo-600 text-white px-4 py-2 rounded">
+                Test Steam Profile
+            </button>
+            <div id="steamResult" class="mt-4"></div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-3">Test Roblox API</h2>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Roblox Username:</label>
+                <input type="text" id="robloxId" value="Roblox" 
+                    class="w-full p-2 border rounded">
+            </div>
+            <button id="testRobloxBtn" class="bg-gray-600 text-white px-4 py-2 rounded">
+                Test Roblox Profile
+            </button>
+            <div id="robloxResult" class="mt-4"></div>
+        </div>
+        
+        <div class="mt-6 text-center">
+            <a href="index.html" class="bg-indigo-600 text-white px-4 py-2 rounded inline-block">
+                Return to Main App
+            </a>
+        </div>
+    </div>
+
+    <script type="module">
+        import CONFIG from './src/config.js';
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize with current config value
+            document.getElementById('corsProxy').value = CONFIG.CORS_PROXY;
+            
+            // Test CORS proxy
+            document.getElementById('testCorsBtn').addEventListener('click', async function() {
+                const corsProxy = document.getElementById('corsProxy').value;
+                const testUrl = document.getElementById('testUrl').value;
+                const resultDiv = document.getElementById('corsResult');
+                
+                resultDiv.innerHTML = '<div class="text-yellow-600">Testing...</div>';
+                
+                try {
+                    const fullUrl = `${corsProxy}${encodeURIComponent(testUrl)}`;
+                    console.log('Testing URL:', fullUrl);
+                    
+                    const response = await fetch(fullUrl);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    
+                    const text = await response.text();
+                    resultDiv.innerHTML = `
+                        <div class="success">✅ Success! Status: ${response.status}</div>
+                        <div class="text-sm mt-2">Response length: ${text.length} characters</div>
+                        <pre>${text.substring(0, 500)}${text.length > 500 ? '...' : ''}</pre>
+                    `;
+                } catch (error) {
+                    resultDiv.innerHTML = `
+                        <div class="error">❌ Error: ${error.message}</div>
+                    `;
+                    console.error('CORS test error:', error);
+                }
+            });
+            
+            // Test Steam API
+            document.getElementById('testSteamBtn').addEventListener('click', async function() {
+                const corsProxy = document.getElementById('corsProxy').value;
+                const steamId = document.getElementById('steamId').value;
+                const resultDiv = document.getElementById('steamResult');
+                
+                resultDiv.innerHTML = '<div class="text-yellow-600">Testing...</div>';
+                
+                try {
+                    // Construct the Steam profile URL
+                    const profileUrl = isNaN(steamId) 
+                        ? `https://steamcommunity.com/id/${encodeURIComponent(steamId)}` 
+                        : `https://steamcommunity.com/profiles/${encodeURIComponent(steamId)}`;
+                    
+                    const requestUrl = `${profileUrl}?xml=1`;
+                    const fullUrl = `${corsProxy}${encodeURIComponent(requestUrl)}`;
+                    console.log('Testing Steam URL:', fullUrl);
+                    
+                    const response = await fetch(fullUrl);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    
+                    const text = await response.text();
+                    resultDiv.innerHTML = `
+                        <div class="success">✅ Success! Status: ${response.status}</div>
+                        <div class="text-sm mt-2">Response length: ${text.length} characters</div>
+                        <pre>${text.substring(0, 500)}${text.length > 500 ? '...' : ''}</pre>
+                    `;
+                    
+                    // Try to parse the XML
+                    try {
+                        const parser = new DOMParser();
+                        const xmlDoc = parser.parseFromString(text, "text/xml");
+                        const error = xmlDoc.querySelector("error");
+                        
+                        if (error) {
+                            resultDiv.innerHTML += `
+                                <div class="error mt-3">❌ Steam error: ${error.textContent}</div>
+                            `;
+                        } else {
+                            const steamID = xmlDoc.querySelector("steamID")?.textContent;
+                            const avatarFull = xmlDoc.querySelector("avatarFull")?.textContent;
+                            
+                            if (steamID) {
+                                resultDiv.innerHTML += `
+                                    <div class="success mt-3">✅ Profile found: ${steamID}</div>
+                                    ${avatarFull ? `<img src="${avatarFull}" class="mt-2 w-16 h-16 rounded">` : ''}
+                                `;
+                            }
+                        }
+                    } catch (xmlError) {
+                        resultDiv.innerHTML += `
+                            <div class="error mt-3">❌ XML parsing error: ${xmlError.message}</div>
+                        `;
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML = `
+                        <div class="error">❌ Error: ${error.message}</div>
+                    `;
+                    console.error('Steam test error:', error);
+                }
+            });
+            
+            // Test Roblox API
+            document.getElementById('testRobloxBtn').addEventListener('click', async function() {
+                const robloxUsername = document.getElementById('robloxId').value;
+                const resultDiv = document.getElementById('robloxResult');
+                
+                resultDiv.innerHTML = '<div class="text-yellow-600">Testing...</div>';
+                
+                try {
+                    // Step 1: Get user ID from username using public API
+                    const userIdResponse = await fetch('https://users.roblox.com/v1/usernames/users', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            usernames: [robloxUsername],
+                            excludeBannedUsers: true
+                        })
+                    });
+                    
+                    if (!userIdResponse.ok) {
+                        throw new Error(`Failed to fetch user ID: ${userIdResponse.status}`);
+                    }
+                    
+                    const userData = await userIdResponse.json();
+                    
+                    if (!userData.data || userData.data.length === 0) {
+                        throw new Error('Roblox user not found');
+                    }
+                    
+                    const userId = userData.data[0].id;
+                    resultDiv.innerHTML = `
+                        <div class="success">✅ Found user ID: ${userId}</div>
+                    `;
+                    
+                    // Step 2: Get user details
+                    const profileResponse = await fetch(`https://users.roblox.com/v1/users/${userId}`);
+                    
+                    if (!profileResponse.ok) {
+                        throw new Error('Failed to fetch Roblox profile');
+                    }
+                    
+                    const profileData = await profileResponse.json();
+                    resultDiv.innerHTML += `
+                        <div class="success mt-2">✅ Profile found: ${profileData.name}</div>
+                        <pre>${JSON.stringify(profileData, null, 2)}</pre>
+                    `;
+                    
+                    // Step 3: Get thumbnail
+                    const thumbnailResponse = await fetch(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${userId}&size=420x420&format=Png`);
+                    const thumbnailData = await thumbnailResponse.json();
+                    
+                    if (thumbnailData.data && thumbnailData.data.length > 0) {
+                        const avatarUrl = thumbnailData.data[0].imageUrl;
+                        resultDiv.innerHTML += `
+                            <div class="mt-3"><img src="${avatarUrl}" class="w-16 h-16 rounded"></div>
+                        `;
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML = `
+                        <div class="error">❌ Error: ${error.message}</div>
+                    `;
+                    console.error('Roblox test error:', error);
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

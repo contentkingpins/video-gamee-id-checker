@@ -1,0 +1,33 @@
+{
+  "name": "gamertag-checker",
+  "version": "1.0.0",
+  "description": "Check gaming profiles across multiple platforms with a stable Express.js backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "python3 -m http.server 8000",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rippasats/gamertag-checker.git"
+  },
+  "keywords": [
+    "gaming",
+    "profiles",
+    "gamertag",
+    "checker",
+    "express",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "node-fetch": "^2.6.7"
+  }
+} 

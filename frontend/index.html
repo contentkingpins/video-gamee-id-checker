@@ -25,8 +25,9 @@
                 <p>Last Request: <span id="debug-last-request" class="font-mono"></span></p>
                 <p>Network Status: <span id="debug-network-status" class="font-mono"></span></p>
             </div>
-            <div class="mt-2">
+            <div class="mt-2 flex space-x-2">
                 <button id="test-connection" class="bg-blue-600 text-white text-xs px-2 py-1 rounded">Test API Connection</button>
+                <a href="debug.html" class="bg-green-600 text-white text-xs px-2 py-1 rounded inline-block">Advanced Debug Tools</a>
             </div>
         </div>
 
@@ -117,7 +118,7 @@
             const testConnectionBtn = document.getElementById('test-connection');
             
             // Calculate API URL - no longer needed since we're using direct API calls
-            const apiUrl = "Direct API Calls (No Backend)";
+            const apiUrl = "Direct API Calls via CORS Proxy: " + CONFIG.CORS_PROXY;
             
             debugApiUrl.textContent = apiUrl;
             
@@ -136,24 +137,27 @@
                     debugNetworkStatus.textContent = 'Testing...';
                     debugNetworkStatus.className = 'font-mono text-yellow-400';
                     
-                    // Test CORS proxy with Steam API
-                    const testUrl = `${CONFIG.CORS_PROXY}https://api.steampowered.com/ISteamWebAPIUtil/GetSupportedAPIList/v1/?key=DEMO`;
+                    // Test CORS proxy with Steam API for a known profile (Gabe Newell)
+                    const profileUrl = 'https://steamcommunity.com/id/gabelogannewell';
+                    const testUrl = `${CONFIG.CORS_PROXY}${encodeURIComponent(profileUrl)}?xml=1`;
                     debugLastRequest.textContent = testUrl;
                     
                     const response = await fetch(testUrl);
-                    const contentType = response.headers.get('content-type');
                     
-                    if (contentType && contentType.includes('application/json')) {
-                        const data = await response.json();
-                        debugNetworkStatus.textContent = `✅ Success: CORS proxy working`;
-                        debugNetworkStatus.className = 'font-mono text-green-400';
-                    } else {
-                        debugNetworkStatus.textContent = `❌ Wrong content type: ${contentType}`;
-                        debugNetworkStatus.className = 'font-mono text-red-400';
-                        
-                        // Try to see what content we're getting
+                    if (response.ok) {
                         const text = await response.text();
-                        console.log('Received content:', text.substring(0, 150) + '...');
+                        console.log('API test response length:', text.length);
+                        
+                        if (text.length > 100) {
+                            debugNetworkStatus.textContent = `✅ Success: CORS proxy working`;
+                            debugNetworkStatus.className = 'font-mono text-green-400';
+                        } else {
+                            debugNetworkStatus.textContent = `❌ Response too short: ${text.length} chars`;
+                            debugNetworkStatus.className = 'font-mono text-red-400';
+                        }
+                    } else {
+                        debugNetworkStatus.textContent = `❌ HTTP error: ${response.status}`;
+                        debugNetworkStatus.className = 'font-mono text-red-400';
                     }
                 } catch (err) {
                     debugNetworkStatus.textContent = `❌ Error: ${err.message}`;
